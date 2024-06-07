@@ -1,5 +1,7 @@
 
 from matplotlib import pyplot as plt
+from itertools import product
+from os import path
 
 from pylab import rcParams
 rcParams['axes.xmargin'] = 0
@@ -77,10 +79,10 @@ class Frequency_Matrix_Representation:
                 col -= 1
             matrix[row][col] += 1
             
-        return np.rot90(matrix)
+        return matrix
 
     def visual_fcgr(self):
-        plt.imshow(self.fcgr, cmap='binary')
+        plt.imshow(np.rot90(self.fcgr), cmap='binary')
         axes = plt.gca()
         axes.set_aspect('equal', adjustable='box')
         axes.get_xaxis().set_visible(False)
@@ -88,3 +90,60 @@ class Frequency_Matrix_Representation:
         plt.colorbar()
         plt.title(f"Frequency matrix representation of {self.id}")
         plt.show()
+
+    def min_kmer(self):
+        mn = np.min(self.fcgr)
+        min_kmer = []
+        kmers = [''.join(b) for b in product(BASES, repeat = self.k)]
+        for kmer in kmers:
+            if self.kmer_count(kmer) == mn:
+                min_kmer.append(kmer)
+        return ", ".join(min_kmer)
+
+    def max_kmer(self):
+        mx = np.max(self.fcgr)
+        max_kmer = []
+        kmers = [''.join(b) for b in product(BASES, repeat = self.k)]
+        for kmer in kmers:
+            if self.kmer_count(kmer) == mx:
+                max_kmer.append(kmer)
+        return ", ".join(max_kmer)
+
+    def kmer_count(self, kmer):
+        matrix_size = (2 ** self.k)
+        square_size = 1 / matrix_size
+        point = np.array((0.5, 0.5))
+        for base in kmer:
+            if base == 'A':
+                point = SF * (point + ADENINE)
+            elif base == 'T':
+                point = SF * (point + THYMINE)
+            elif base == 'G':
+                point = SF * (point + GUANINE)
+            elif base == 'C':
+                point = SF * (point + CYTOSINE)
+        row = int(point[0] / square_size)
+        col = int(point[1] / square_size)
+        if row == (2 ** self.k):
+            row -= 1
+        if col == (2 ** self.k):
+            col -= 1
+        return self.fcgr[row][col]
+
+    def generate_absent(self):
+        absent_kmer = []
+        kmers = [''.join(b) for b in product(BASES, repeat = self.k)]
+        for kmer in kmers:
+            if self.kmer_count(kmer) == 0:
+                absent_kmer.append(kmer)
+        if (len(absent_kmer) == 0):
+            return "no absent kmers"
+        return ", ".join(absent_kmer)
+
+    def __str__(self):
+        return "\n".join(map(lambda x: str(x)[1:-1], self.fcgr))
+
+    def save(self):
+        file_name = f"{self.id}_{self.k}_fcgr.txt"
+        with open(path.join(OUTPUT_PATH, file_name), 'w') as file:
+            file.write(str(self))

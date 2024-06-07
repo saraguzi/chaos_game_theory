@@ -1,5 +1,4 @@
 
-from os import path
 from itertools import combinations
 
 from metrics import *
@@ -89,3 +88,5 @@ class Dataset_Comparison:
                 for j in range(self.number_of_files):
                     file.write("%.3f " % distance_matrix[i][j])
                 file.write("\n")
+            
+    
